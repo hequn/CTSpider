@@ -1,9 +1,6 @@
 package com.ctbri.spider.downloader;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +25,6 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ctbri.spider.cache.SystemConstants;
-import com.google.common.collect.Sets;
-
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
@@ -41,7 +35,9 @@ import us.codecraft.webmagic.selector.PlainText;
 import us.codecraft.webmagic.utils.HttpConstant;
 import us.codecraft.webmagic.utils.UrlUtils;
 
-public class CopyOfWebAjaxDownloader extends AbstractDownloader{
+import com.google.common.collect.Sets;
+
+public class OriginalDownloader extends AbstractDownloader{
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -174,7 +170,7 @@ public class CopyOfWebAjaxDownloader extends AbstractDownloader{
     }
 
     protected Page handleResponse(Request request, String charset, HttpResponse httpResponse, Task task) throws IOException {
-        String content = getAjaxCotnent(request.getUrl());//getContent(charset, httpResponse);
+        String content = getContent(charset, httpResponse);//getAjaxCotnent(request.getUrl());
         Page page = new Page();
         page.setRawText(content);
         page.setUrl(new PlainText(request.getUrl()));
@@ -201,7 +197,7 @@ public class CopyOfWebAjaxDownloader extends AbstractDownloader{
     protected String getHtmlCharset(HttpResponse httpResponse, byte[] contentBytes) throws IOException {
         String charset;
         // charset
-        // 1銆乪ncoding in http header Content-Type
+        // get encoding in http header Content-Type
         String value = httpResponse.getEntity().getContentType().getValue();
         charset = UrlUtils.getCharset(value);
         if (StringUtils.isNotBlank(charset)) {
@@ -234,18 +230,5 @@ public class CopyOfWebAjaxDownloader extends AbstractDownloader{
         logger.debug("Auto get charset: {}", charset);
         //use tools as cpdetector for content decode
         return charset;
-    }
-    
-    protected String getAjaxCotnent(String url) throws IOException {
-        Runtime rt = Runtime.getRuntime();
-        Process p = rt.exec(SystemConstants.properties.getProperty(SystemConstants.PJ_COMMAND)+url);//PhantomJS 处理
-        InputStream is = p.getInputStream();
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuffer sbf = new StringBuffer();
-        String tmp = "";
-        while((tmp = br.readLine())!=null){
-            sbf.append(tmp);
-        }
-        return sbf.toString();
     }
 }

@@ -1,10 +1,11 @@
-package com.ctbri.spider.utils;
+package com.ctbri.spider.puter;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -17,10 +18,19 @@ import com.ctbri.spider.model.Entity;
 
 public class FileItemsSaver implements Runnable{
 
-	private static int period = 1000*20;//three seconds
-	private static int maxQueueSize = 500;
+	private int period = 1000*20;//three seconds
+	private int maxQueueSize = 500;
+	private Spider spider = null;
+	
 	private static Logger logger = Logger.getLogger(FileItemsSaver.class);
-	private static Spider spider = null;
+	
+	public FileItemsSaver(int period, int maxQueueSize , Spider spider) {
+		super();
+		this.period = period;
+		this.maxQueueSize = maxQueueSize;
+		this.spider = spider;
+	}
+
 	@Override
 	public void run() {
 
@@ -70,11 +80,13 @@ public class FileItemsSaver implements Runnable{
 	private void writeNewFiles() throws Exception{
 		synchronized (CacheHandler.fileLines) {
 			synchronized (CacheHandler.readWriteLock) {
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日HH时mm分ss秒");
-				String tmpFull = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/FullParams/"+sdf.format(new Date())+"-all";
-				String tmpShortOfBrand = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfBrand/"+sdf.format(new Date())+"-shortOfBrand";
-				String tmpShortOfPrice = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfPrice/"+sdf.format(new Date())+"-shortOfPrice";
-				String tmpShortOfAll = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfAll/"+sdf.format(new Date())+"-shortOfAll";
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+				String dateTime = sdf.format(new Date());
+				String keyID = UUID.randomUUID().toString();
+				String tmpFull = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/FullParams/"+keyID;
+				String tmpShortOfBrand = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfBrand/"+keyID;
+				String tmpShortOfPrice = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfPrice/"+keyID;
+				String tmpShortOfAll = SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfAll/"+keyID;
 				PrintWriter printWriter1 = new PrintWriter(new FileWriter(tmpFull));
 				PrintWriter printWriter2 = new PrintWriter(new FileWriter(tmpShortOfBrand));
 				PrintWriter printWriter3 = new PrintWriter(new FileWriter(tmpShortOfPrice));
@@ -83,10 +95,10 @@ public class FileItemsSaver implements Runnable{
 					String key = e.getItemName();
 					String pName = e.getItemParams().get("productName");
 					String pPrice = e.getItemParams().get("productPrice");
-					if(pName==null&&pPrice==null) printWriter4.println(key+" "+pName+" "+pPrice);
-					else if(pName!=null&&pPrice==null) printWriter3.println(key+" "+pName+" "+pPrice);
-					else if(pName==null&&pPrice!=null) printWriter2.println(key+" "+pName+" "+pPrice);
-					else printWriter1.println(key+" "+pName+" "+pPrice);
+					if(pName==null&&pPrice==null) printWriter4.println(key+" "+pName+" "+pPrice+" "+dateTime);
+					else if(pName!=null&&pPrice==null) printWriter3.println(key+" "+pName+" "+pPrice+" "+dateTime);
+					else if(pName==null&&pPrice!=null) printWriter2.println(key+" "+pName+" "+pPrice+" "+dateTime);
+					else printWriter1.println(key+" "+pName+" "+pPrice+" "+dateTime);
 				}
 				CacheHandler.fileLines.clear();
 				printWriter1.close();
@@ -95,13 +107,5 @@ public class FileItemsSaver implements Runnable{
 				printWriter4.close();
 			}
 		}		
-	}
-
-	public static Spider getSpider() {
-		return spider;
-	}
-	
-	public static void setSpider(Spider spider) {
-		FileItemsSaver.spider = spider;
 	}
 }

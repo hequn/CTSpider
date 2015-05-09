@@ -3,6 +3,8 @@ package com.ctbri.spider.scheduler;
 import com.alibaba.fastjson.JSON;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -27,6 +29,8 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     private static final String ITEM_PREFIX = "item_";
 
+    private static Logger logger = LoggerFactory.getLogger(RedisDuplicateScheduler.class);
+    
     public RedisDuplicateScheduler(String host) {
         this(new JedisPool(new JedisPoolConfig(), host));
     }
@@ -48,7 +52,22 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     @Override
     protected void pushWhenNoDuplicate(Request request, Task task) {
-        Jedis jedis = pool.getResource();
+        Jedis jedis = null;
+        while(true){
+        	try {
+        		jedis = pool.getResource();
+        		break;
+        	} catch (Exception e) {
+        		logger.info("Redis connection errors, try it again :",e);
+        		pool.returnBrokenResource(jedis);
+        		try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+        		continue;
+        	}
+        }
         try {
             jedis.rpush(getQueueKey(task), request.getUrl());
             if (request.getExtras() != null) {
@@ -63,7 +82,22 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     @Override
     public synchronized Request poll(Task task) {
-        Jedis jedis = pool.getResource();
+        Jedis jedis = null;
+        while(true){
+        	try {
+        		jedis = pool.getResource();
+        		break;
+        	} catch (Exception e) {
+        		logger.info("Redis connection errors, try it again :",e);
+        		pool.returnBrokenResource(jedis);
+        		try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+        		continue;
+        	}
+        }
         try {
             String url = jedis.lpop(getQueueKey(task));
             if (url == null) {
@@ -89,7 +123,22 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     @Override
     public int getLeftRequestsCount(Task task) {
-        Jedis jedis = pool.getResource();
+        Jedis jedis = null;
+        while(true){
+        	try {
+        		jedis = pool.getResource();
+        		break;
+        	} catch (Exception e) {
+        		logger.info("Redis connection errors, try it again :",e);
+        		pool.returnBrokenResource(jedis);
+        		try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+        		continue;
+        	}
+        }
         try {
             Long size = jedis.llen(getQueueKey(task));
             return size.intValue();
@@ -100,7 +149,22 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     @Override
     public int getTotalRequestsCount(Task task) {
-        Jedis jedis = pool.getResource();
+        Jedis jedis = null;
+        while(true){
+        	try {
+        		jedis = pool.getResource();
+        		break;
+        	} catch (Exception e) {
+        		logger.info("Redis connection errors, try it again :",e);
+        		pool.returnBrokenResource(jedis);
+        		try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+        		continue;
+        	}
+        }
         try {
             Long size = jedis.scard(getQueueKey(task));
             return size.intValue();

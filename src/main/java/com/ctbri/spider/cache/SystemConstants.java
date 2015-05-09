@@ -24,13 +24,24 @@ public class SystemConstants {
 	public static final String SAVE_LOCATION = "SAVE_LOCATION";
 	public static final String PJ_COMMAND = "PJ_COMMAND";
 	public static final String TH_COUNT = "TH_COUNT";
-	public static final String D_SEED = "D_SEED";
 	public static final String SEED_CLIENT = "SEED_CLIENT";
 	public static final String SEED_LOCATION="SEED_LOCATION";
 	public static final String NEVER_STOP="NEVER_STOP";
+	public static final String REDIS_MAX_ACTIVE="REDIS_MAX_ACTIVE";
+	public static final String REDIS_MAX_WAIT="REDIS_MAX_WAIT";
+	public static final String REDIS_MAX_IDLE="REDIS_MAX_IDLE";
+	public static final String REDIS_TIME_OUT = "REDIS_TIME_OUT";
+	public static final String WAIT_EMPTY = "WAIT_EMPTY";	
+	public static final String SEED_WAIT_CHECK = "SEED_WAIT_CHECK";	
+	public static final String SEED_MAX_QUEUE = "SEED_MAX_QUEUE";
+	public static final String RELOAD_WAIT = "RELOAD_WAIT";
+	public static final String RESULT_WAIT_CHECK = "RESULT_WAIT_CHECK";
+	public static final String RESULT_MAX_QUEUE = "RESULT_MAX_QUEUE";
 	
 	//the constants of the system
 	public static final String SPLITTER = "/";
+
+
 	
 	//load the key value into properties
 	static {

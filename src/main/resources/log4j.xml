@@ -7,8 +7,8 @@
 		<param name="ImmediateFlush" value="true" />
 		<param name="Threshold" value="info"></param>
 		<param name="Append" value="true"></param>
-		<param name="MaxFileSize" value="1024KB"></param>
-		<param name="MaxBackupIndex" value="100"></param>
+		<param name="MaxFileSize" value="102400KB"></param>
+		<param name="MaxBackupIndex" value="1000"></param>
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%d{yy-MM-dd HH:mm:ss,SSS} %-5p %c(%F:%L) ## %m%n" />
 		</layout>
@@ -17,7 +17,7 @@
 	<!-- 把INFO信息输出到控制台 -->
 	<appender name="INFOConsole" class="org.apache.log4j.ConsoleAppender">
 		<layout class="org.apache.log4j.PatternLayout">
-			<param name="ConversionPattern" value="%-5p  %d{MM月dd号 HH:mm} %m%n" />
+			<param name="ConversionPattern" value="%-5p  %d{MM-dd HH:mm:ss} %m%n" />
 		</layout>
 		<filter class="org.apache.log4j.varia.LevelRangeFilter">
 			<param name="LevelMin" value="INFO" />

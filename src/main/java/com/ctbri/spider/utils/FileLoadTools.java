@@ -38,6 +38,7 @@ public class FileLoadTools {
 			public boolean accept(File pathname) {
 				boolean result = false;
 				if(pathname.getName().endsWith(".txt")) result = true;
+				else if(pathname.getName().indexOf(".")==-1) result = true;
 				return result;
 			}
 		});

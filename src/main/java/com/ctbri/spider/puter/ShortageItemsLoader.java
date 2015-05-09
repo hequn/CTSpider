@@ -1,4 +1,4 @@
-package com.ctbri.spider.utils;
+package com.ctbri.spider.puter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,6 +12,7 @@ import us.codecraft.webmagic.Spider;
 
 import com.ctbri.spider.cache.CacheHandler;
 import com.ctbri.spider.cache.SystemConstants;
+import com.ctbri.spider.utils.FileLoadTools;
 
 /**
  * 
@@ -27,9 +28,16 @@ import com.ctbri.spider.cache.SystemConstants;
  */
 public class ShortageItemsLoader implements Runnable{
 
-	private static int period = 1000*1000;//1000 seconds
+	private int period = 1000*3600*6;//1000 seconds
+	private Spider spider = null;
+	
 	private static Logger logger = Logger.getLogger(ShortageItemsLoader.class);
-	private static Spider spider = null;
+		
+	public ShortageItemsLoader(int period, Spider spider) {
+		super();
+		this.period = period;
+		this.spider = spider;
+	}
 
 	@Override
 	public void run() {
@@ -48,8 +56,9 @@ public class ShortageItemsLoader implements Runnable{
 						String line = null;
 						BufferedReader fileReader = new BufferedReader(new FileReader(file));
 						while ((line = fileReader.readLine()) != null) {
-							spider.addUrl(line);
-							logger.info("Adding Failure Url to Scheduler");
+							String[] items = line.split(" ");
+							spider.addUrl("http://item.jd.com/"+items[0]+".html");
+							logger.info("Adding Failure Url to Scheduler :"+ items[0]);
 						}
 						fileReader.close();
 						FileUtils.copyFileToDirectory(file, fileR);
@@ -61,13 +70,5 @@ public class ShortageItemsLoader implements Runnable{
 				logger.error("Error happens",e);
 			}
 		}
-	}
-	
-	public static Spider getSpider() {
-		return spider;
-	}
-	
-	public static void setSpider(Spider spider) {
-		ShortageItemsLoader.spider = spider;
 	}
 }

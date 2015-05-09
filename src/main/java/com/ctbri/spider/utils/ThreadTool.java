@@ -13,7 +13,7 @@ import java.util.Calendar;
  * @Creat Time : 2014-9-2 下午4:30:13
  * @TimeTools
  */
-public class TimeTools {
+public class ThreadTool {
 	
 	public static Long getLongValueOfTimeInSeconds(StringBuffer strTime){
 		int year = 0, month = 0, date = 0 , hour = 0 , minutes = 0 , seconds = 0;
@@ -48,5 +48,12 @@ public class TimeTools {
 		clstart.set(Calendar.SECOND, seconds);
 		clstart.set(Calendar.MILLISECOND, 0);
 		return clstart.getTimeInMillis()/1000;
+	}
+	
+	public static void startNewThread(Runnable run , int priority){
+		Thread tTmp = new Thread(run);
+		tTmp.setDaemon(false);
+		tTmp.setPriority(priority);
+		tTmp.start();
 	}
 }
