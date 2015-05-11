@@ -37,9 +37,11 @@ public class SystemConstants {
 	public static final String RELOAD_WAIT = "RELOAD_WAIT";
 	public static final String RESULT_WAIT_CHECK = "RESULT_WAIT_CHECK";
 	public static final String RESULT_MAX_QUEUE = "RESULT_MAX_QUEUE";
+	public static final String RELOAD_SHORTAGE_PAGE = "RELOAD_SHORTAGE_PAGE";
 	
 	//the constants of the system
 	public static final String SPLITTER = "/";
+
 
 
 	

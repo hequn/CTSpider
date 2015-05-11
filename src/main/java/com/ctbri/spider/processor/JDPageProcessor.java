@@ -34,8 +34,8 @@ public class JDPageProcessor implements PageProcessor {
 	private static Downloader downloader = new OriginalDownloader();
 
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-    private Site site = Site.me().setRetryTimes(3)
-    		.setSleepTime(200).setCycleRetryTimes(3)
+    private Site site = Site.me().setRetryTimes(6)
+    		.setSleepTime(200).setCycleRetryTimes(6)
     		.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36");
     
     //JD相关耦合性配置
@@ -128,12 +128,14 @@ public class JDPageProcessor implements PageProcessor {
         		spider
         	);
         	ThreadTool.startNewThread(fil, Thread.MAX_PRIORITY);
-        	//重爬不成功items
-        	ShortageItemsLoader sil = new ShortageItemsLoader(
-            		1000*3600*Integer.valueOf(SystemConstants.properties.getProperty(SystemConstants.RELOAD_WAIT)),
-            		spider
-        	);
-        	ThreadTool.startNewThread(sil, Thread.NORM_PRIORITY);
+        	if (Boolean.valueOf(SystemConstants.properties.getProperty(SystemConstants.RELOAD_SHORTAGE_PAGE))) {
+				//重爬不成功items
+				ShortageItemsLoader sil = new ShortageItemsLoader(
+					1000 * 3600 * Integer.valueOf(SystemConstants.properties.getProperty(SystemConstants.RELOAD_WAIT)),
+					spider
+				);
+				ThreadTool.startNewThread(sil, Thread.NORM_PRIORITY);
+			}
         } else {
         	ThreadTool.startNewThread(spider, Thread.NORM_PRIORITY);
         };
