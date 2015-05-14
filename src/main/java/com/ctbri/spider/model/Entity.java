@@ -4,19 +4,12 @@ import java.util.Map;
 
 public class Entity {
 
-	private String itemName;
-	private Map<String,String> itemParams;
+	private Map<String,Object> itemParams;
 	
-	public String getItemName() {
-		return itemName;
-	}
-	public void setItemName(String itemName) {
-		this.itemName = itemName;
-	}
-	public Map<String, String> getItemParams() {
+	public Map<String, Object> getItemParams() {
 		return itemParams;
 	}
-	public void setItemParams(Map<String, String> itemParams) {
+	public void setItemParams(Map<String, Object> itemParams) {
 		this.itemParams = itemParams;
 	}
 }

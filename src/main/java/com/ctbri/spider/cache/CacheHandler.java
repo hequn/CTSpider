@@ -19,7 +19,7 @@ import com.ctbri.spider.model.Entity;
  */
 public class CacheHandler {
 	//The product holder(loader)
-	public static final BlockingQueue<Entity> fileLines = new LinkedBlockingQueue<>();
+	public static final BlockingQueue<Entity> resultLines = new LinkedBlockingQueue<>();
 	
 	public static final String readWriteLock = new String("readWriteLock");
 }

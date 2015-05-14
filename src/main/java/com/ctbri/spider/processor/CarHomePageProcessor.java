@@ -10,16 +10,14 @@ import javax.management.JMException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.monitor.SpiderMonitor;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.scheduler.RedisScheduler;
 import us.codecraft.webmagic.selector.Selectable;
 
+import com.ctbri.spider.cache.SystemConstants;
 import com.ctbri.spider.downloader.WebAjaxDownloader;
 import com.ctbri.spider.model.Entity;
 import com.ctbri.spider.pipeline.JsonPipeline;
@@ -27,7 +25,8 @@ import com.ctbri.spider.pipeline.JsonPipeline;
 public class CarHomePageProcessor implements PageProcessor {
 
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(200).setCycleRetryTimes(3);
+    private Site site = Site.me().setRetryTimes(3).setSleepTime(200)
+    		.setCycleRetryTimes(3);
     private String configUrl = "http://car.autohome.com.cn";
     private Logger logger = LoggerFactory.getLogger(getClass());
     
@@ -76,8 +75,8 @@ public class CarHomePageProcessor implements PageProcessor {
 				//生成实体
 				for(int i = 0; i < headers.size() ; i++){
 					Entity e = new Entity();
-					Map<String,String> tmp = new LinkedHashMap<>();
-					e.setItemName(headers.get(i));
+					Map<String,Object> tmp = new LinkedHashMap<>();
+					tmp.put("汽车名称",headers.get(i));
 					for(Entry<String, List<String>> entry:valueHolders.entrySet()){
 						tmp.put(entry.getKey(), entry.getValue().get(i));
 					}
@@ -114,40 +113,50 @@ public class CarHomePageProcessor implements PageProcessor {
     	Spider a = Spider.create(new CarHomePageProcessor())
         //从https://github.com/code4craft开始抓    
         .addUrl("http://www.autohome.com.cn/grade/carhtml/a.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/b.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/c.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/d.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/e.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/f.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/g.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/h.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/i.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/j.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/k.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/l.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/m.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/n.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/o.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/p.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/q.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/r.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/s.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/t.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/u.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/v.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/w.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/x.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/y.html")
-        .addUrl("http://www.autohome.com.cn/grade/carhtml/z.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/b.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/c.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/d.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/e.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/f.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/g.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/h.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/i.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/j.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/k.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/l.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/m.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/n.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/o.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/p.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/q.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/r.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/s.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/t.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/u.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/v.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/w.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/x.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/y.html")
+//        .addUrl("http://www.autohome.com.cn/grade/carhtml/z.html")
         //设置Scheduler，使用Redis来管理URL队列
-        .setScheduler(new RedisScheduler(new JedisPool(new JedisPoolConfig(),"192.168.56.128", 6379)))
+        //.setScheduler(new RedisScheduler(new JedisPool(new JedisPoolConfig(),"192.168.56.128", 6379)))
         //尝试使用SeleniumDownloader
-        .setDownloader(new WebAjaxDownloader())
+        .setDownloader(new WebAjaxDownloader())//new OriginalDownloader()
         //设置Pipeline，将结果以json方式保存到文件
-        .addPipeline(new JsonPipeline("D:\\data\\webmagic"))
+        .addPipeline(new JsonPipeline("D:\\data\\webmagic"))//new GeneratePipeline()
         //开启5个线程同时执行
-        .thread(5);
+        .thread(1);
     	//启动监视器，cmd jconsole.exe查看状态 jmx
+    	if(Boolean.valueOf(SystemConstants.properties.getProperty(SystemConstants.PROXY_CRAWL))){
+    		a.getSite().setProxyReuseInterval(1000*5);
+    		String[] proxies = SystemConstants.properties.getProperty(SystemConstants.PROXY_QUEUE).split(";");
+    		List<String[]> pList = new ArrayList<>();
+    		for (String proxy : proxies) {
+    			if(proxy!=null && !proxy.trim().equals(""))
+    				pList.add(proxy.split(":"));
+			}
+    		a.getSite().setHttpProxyPool(pList);
+    	}
     	try {
 			SpiderMonitor.instance().register(a);
 		} catch (JMException e) {

@@ -38,13 +38,14 @@ public class SystemConstants {
 	public static final String RESULT_WAIT_CHECK = "RESULT_WAIT_CHECK";
 	public static final String RESULT_MAX_QUEUE = "RESULT_MAX_QUEUE";
 	public static final String RELOAD_SHORTAGE_PAGE = "RELOAD_SHORTAGE_PAGE";
+	public static final String NET_ETH = "NET_ETH";
+	public static final String PROXY_CRAWL = "PROXY_CRAWL";
+	public static final String PROXY_QUEUE = "PROXY_QUEUE";
 	
 	//the constants of the system
 	public static final String SPLITTER = "/";
 
 
-
-	
 	//load the key value into properties
 	static {
 		try {

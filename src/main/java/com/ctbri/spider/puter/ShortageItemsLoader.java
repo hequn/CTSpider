@@ -5,14 +5,11 @@ import java.io.File;
 import java.io.FileReader;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import us.codecraft.webmagic.Spider;
 
 import com.ctbri.spider.cache.CacheHandler;
-import com.ctbri.spider.cache.SystemConstants;
-import com.ctbri.spider.utils.FileLoadTools;
 
 /**
  * 
@@ -30,35 +27,40 @@ public class ShortageItemsLoader implements Runnable{
 
 	private int period = 1000*3600*6;//1000 seconds
 	private Spider spider = null;
+	private FailurePageReload pageReloader = null;
 	
 	private static Logger logger = Logger.getLogger(ShortageItemsLoader.class);
 		
-	public ShortageItemsLoader(int period, Spider spider) {
+	public ShortageItemsLoader(int period, Spider spider, FailurePageReload pageReloader) {
 		super();
 		this.period = period;
 		this.spider = spider;
+		this.pageReloader = pageReloader;
 	}
 
 	@Override
 	public void run() {
-		File fileR = new File(SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/RetriedItems");
-		if(!fileR.exists()) fileR.mkdir();
+		
+		File fileR = null;
+		try {
+			fileR = this.pageReloader.initReloadBackPos();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		while(true){
 			try {
-				File[] filesSPrice = FileLoadTools.getFilesByDirectory(SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfPrice");
-				File[] filesSAll = FileLoadTools.getFilesByDirectory(SystemConstants.properties.getProperty(SystemConstants.SAVE_LOCATION)+"/ShortOfAll");
-				
-				File[] needRecrawl = ArrayUtils.addAll(filesSPrice, filesSAll);
+
+				File[] needRecrawl = this.pageReloader.getReloadFiles();
 				
 				synchronized (CacheHandler.readWriteLock) {
 					for (File file : needRecrawl) {
 						String line = null;
 						BufferedReader fileReader = new BufferedReader(new FileReader(file));
 						while ((line = fileReader.readLine()) != null) {
-							String[] items = line.split(" ");
-							spider.addUrl("http://item.jd.com/"+items[0]+".html");
-							logger.info("Adding Failure Url to Scheduler :"+ items[0]);
+							String dealedUrl = pageReloader.pageReloadUrl(line);
+							spider.addUrl(dealedUrl);
+							logger.info("Adding Failure Url to Scheduler :"+ dealedUrl);
 						}
 						fileReader.close();
 						FileUtils.copyFileToDirectory(file, fileR);
