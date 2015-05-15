@@ -27,11 +27,11 @@ public class ShortageItemsLoader implements Runnable{
 
 	private int period = 1000*3600*6;//1000 seconds
 	private Spider spider = null;
-	private FailurePageReload pageReloader = null;
+	private FailurePageReloader pageReloader = null;
 	
 	private static Logger logger = Logger.getLogger(ShortageItemsLoader.class);
 		
-	public ShortageItemsLoader(int period, Spider spider, FailurePageReload pageReloader) {
+	public ShortageItemsLoader(int period, Spider spider, FailurePageReloader pageReloader) {
 		super();
 		this.period = period;
 		this.spider = spider;

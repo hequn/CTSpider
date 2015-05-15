@@ -34,13 +34,13 @@ import com.ctbri.spider.pipeline.GeneratePipeline;
 import com.ctbri.spider.puter.PageBatchWriter;
 import com.ctbri.spider.puter.FileItemsLoader;
 import com.ctbri.spider.puter.FileItemsSaver;
-import com.ctbri.spider.puter.FailurePageReload;
+import com.ctbri.spider.puter.FailurePageReloader;
 import com.ctbri.spider.puter.ShortageItemsLoader;
 import com.ctbri.spider.scheduler.RedisDuplicateScheduler;
 import com.ctbri.spider.utils.FileLoadTools;
 import com.ctbri.spider.utils.ThreadTool;
 
-public class JDPageProcessor implements PageProcessor,PageBatchWriter,FailurePageReload {
+public class JDPageProcessor implements PageProcessor,PageBatchWriter,FailurePageReloader {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	//定义spider
@@ -56,8 +56,8 @@ public class JDPageProcessor implements PageProcessor,PageBatchWriter,FailurePag
     		.addHeader("Accept-Encoding", "gzip, deflate, sdch")
     		.addHeader("Accept-Language", "zh-CN,zh;q=0.8")
     		.addHeader("Cache-Control", "no-cache")
-    		.addHeader("Connection", "keep-alive")
-    		.addHeader("Referer", "http://www.jd.com");
+    		.addHeader("Connection", "keep-alive");
+    		//.addHeader("Referer", "http://www.jd.com")
     //JD相关耦合性配置
     private static String jdPrice = "http://p.3.cn/prices/get?skuid=J_";
     

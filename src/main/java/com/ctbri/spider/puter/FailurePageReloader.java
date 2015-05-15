@@ -2,7 +2,7 @@ package com.ctbri.spider.puter;
 
 import java.io.File;
 
-public interface FailurePageReload {
+public interface FailurePageReloader {
 	
 	public File[] getReloadFiles() throws Exception;
 	
