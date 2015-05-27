@@ -35,7 +35,7 @@ public class ProxyUtil {
 		Enumeration<InetAddress> localAddrs;
 		try {
 			NetworkInterface ni = NetworkInterface.getByName(
-					SystemConstants.properties.getProperty(SystemConstants.NET_ETH)
+					SystemConstants.propertiesControl.getProperty(SystemConstants.NET_ETH)
 			);
 			if (ni == null) {
 				logger.error("choose NetworkInterface\n" + getNetworkInterface());

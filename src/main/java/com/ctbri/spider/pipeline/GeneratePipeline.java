@@ -10,12 +10,22 @@ import us.codecraft.webmagic.pipeline.Pipeline;
 import com.ctbri.spider.cache.CacheHandler;
 import com.ctbri.spider.model.Entity;
 
+/**
+ * 
+ * Copyright 2015 CTBRI
+ * All right reserved.
+ * <p>
+ *	The pipeline which adds the crawling results to {@link Entity} and then adds it to 
+ *	<code>CacheHandler.resultLines</code>.
+ * </p>
+ * 
+ * @author Qun He
+ * @version 1.0.0
+ * @Create 2015年5月22日 下午2:08:55
+ */
 public class GeneratePipeline implements Pipeline {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	/**
-	 * ctbri pipe with default path "/data/webmagic/" and fix the file not exists bug under windows
-	 */
 	@Override
 	public void process(ResultItems resultItems, Task task) {
 		try {
@@ -23,7 +33,7 @@ public class GeneratePipeline implements Pipeline {
 			e.setItemParams(resultItems.getAll());
 			CacheHandler.resultLines.offer(e);
 		} catch (Exception e) {
-			logger.warn("Adding result error",e);
+			logger.error("Adding result error",e);
 		}
 	}
 }

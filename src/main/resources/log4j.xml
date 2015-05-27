@@ -19,19 +19,10 @@
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%-5p  %d{MM-dd HH:mm:ss} %m%n" />
 		</layout>
-		<filter class="org.apache.log4j.varia.LevelRangeFilter">
-			<param name="LevelMin" value="INFO" />
-			<param name="LevelMax" value="INFO" />
-		</filter>
 	</appender>
 
-	<logger name="org.apache" additivity="false">
-		<level value="warn" />
-		<appender-ref ref="stdout" />
-	</logger>
-
 	<root>
-		<level value="info" />
+		<level value="debug" />
 		<appender-ref ref="stdout" />
 		<appender-ref ref="INFOConsole" />
 	</root>

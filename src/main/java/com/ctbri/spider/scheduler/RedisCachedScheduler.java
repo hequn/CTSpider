@@ -1,10 +1,6 @@
 package com.ctbri.spider.scheduler;
 
-import com.alibaba.fastjson.JSON;
-
 import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -15,27 +11,38 @@ import us.codecraft.webmagic.scheduler.DuplicateRemovedScheduler;
 import us.codecraft.webmagic.scheduler.MonitorableScheduler;
 import us.codecraft.webmagic.scheduler.component.DuplicateRemover;
 
+import com.alibaba.fastjson.JSON;
+import com.ctbri.spider.cache.CacheHandler;
+import com.ctbri.spider.cache.SystemConstants;
+import com.ctbri.spider.utils.CommonTools;
+
 /**
- * Use Redis as url scheduler for distributed crawlers.<br>
- *
- * @author code4crafter@gmail.com <br>
- * @since 0.2.0
+ * 
+ * Copyright 2015 CTBRI
+ * All right reserved.
+ * <p>
+ *	A customized scheduler that allows pool the url from the 
+ *	{@link CacheHandler} <code>cachedNoExtraUrls</code> which will save the cost time 
+ *	connecting to the redis server.
+ * </p>
+ * 
+ * @author Qun He
+ * @version 1.0.0
+ * @Create 2015年5月22日 下午2:57:24
  */
-public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implements MonitorableScheduler, DuplicateRemover {
+public class RedisCachedScheduler extends DuplicateRemovedScheduler implements MonitorableScheduler, DuplicateRemover {
 
     private JedisPool pool;
 
     private static final String QUEUE_PREFIX = "queue_";
 
     private static final String ITEM_PREFIX = "item_";
-
-    private static Logger logger = LoggerFactory.getLogger(RedisDuplicateScheduler.class);
     
-    public RedisDuplicateScheduler(String host) {
+    public RedisCachedScheduler(String host) {
         this(new JedisPool(new JedisPoolConfig(), host));
     }
 
-    public RedisDuplicateScheduler(JedisPool pool) {
+    public RedisCachedScheduler(JedisPool pool) {
         this.pool = pool;
         setDuplicateRemover(this);
     }
@@ -52,22 +59,7 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     @Override
     protected void pushWhenNoDuplicate(Request request, Task task) {
-        Jedis jedis = null;
-        while(true){
-        	try {
-        		jedis = pool.getResource();
-        		break;
-        	} catch (Exception e) {
-        		logger.info("Redis connection errors, try it again :",e);
-        		pool.returnBrokenResource(jedis);
-        		try {
-					Thread.sleep(1000*5);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-        		continue;
-        	}
-        }
+        Jedis jedis = CommonTools.getJedisResource();
         try {
             jedis.rpush(getQueueKey(task), request.getUrl());
             if (request.getExtras() != null) {
@@ -76,35 +68,25 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
                 jedis.hset((ITEM_PREFIX + task.getUUID()), field, value);
             }
         } finally {
-            pool.returnResource(jedis);
+            pool.returnResourceObject(jedis);
         }
     }
 
     @Override
     public synchronized Request poll(Task task) {
-        Jedis jedis = null;
-        while(true){
-        	try {
-        		jedis = pool.getResource();
-        		break;
-        	} catch (Exception e) {
-        		logger.info("Redis connection errors, try it again :",e);
-        		pool.returnBrokenResource(jedis);
-        		try {
-					Thread.sleep(1000*5);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-        		continue;
-        	}
-        }
+    	//return if hung up, hung up happens in two ways
+    	if(CacheHandler.hungUp==true||
+    			CacheHandler.workerSignal.equals(SystemConstants.HUNGUP)) return null;
+    	Jedis jedis = null;
         try {
-            String url = jedis.lpop(getQueueKey(task));
+            String url = CacheHandler.cachedNoExtraUrls.poll();
             if (url == null) {
                 return null;
             }
+            jedis = CommonTools.getJedisResource();
             String key = ITEM_PREFIX + task.getUUID();
             String field = DigestUtils.shaHex(url);
+            //for retried urls
             byte[] bytes = jedis.hget(key.getBytes(), field.getBytes());
             if (bytes != null) {
                 Request o = JSON.parseObject(new String(bytes), Request.class);
@@ -113,7 +95,7 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
             Request request = new Request(url);
             return request;
         } finally {
-            pool.returnResource(jedis);
+           if(jedis!=null) pool.returnResourceObject(jedis);
         }
     }
 
@@ -123,53 +105,23 @@ public class RedisDuplicateScheduler extends DuplicateRemovedScheduler implement
 
     @Override
     public int getLeftRequestsCount(Task task) {
-        Jedis jedis = null;
-        while(true){
-        	try {
-        		jedis = pool.getResource();
-        		break;
-        	} catch (Exception e) {
-        		logger.info("Redis connection errors, try it again :",e);
-        		pool.returnBrokenResource(jedis);
-        		try {
-					Thread.sleep(1000*5);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-        		continue;
-        	}
-        }
+        Jedis jedis = CommonTools.getJedisResource();
         try {
             Long size = jedis.llen(getQueueKey(task));
             return size.intValue();
         } finally {
-            pool.returnResource(jedis);
+            pool.returnResourceObject(jedis);
         }
     }
 
     @Override
     public int getTotalRequestsCount(Task task) {
-        Jedis jedis = null;
-        while(true){
-        	try {
-        		jedis = pool.getResource();
-        		break;
-        	} catch (Exception e) {
-        		logger.info("Redis connection errors, try it again :",e);
-        		pool.returnBrokenResource(jedis);
-        		try {
-					Thread.sleep(1000*5);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-        		continue;
-        	}
-        }
+        Jedis jedis = CommonTools.getJedisResource();
         try {
             Long size = jedis.scard(getQueueKey(task));
             return size.intValue();
         } finally {
-            pool.returnResource(jedis);
+            pool.returnResourceObject(jedis);
         }
     }
 }

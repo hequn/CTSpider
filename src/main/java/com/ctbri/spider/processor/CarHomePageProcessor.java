@@ -22,6 +22,19 @@ import com.ctbri.spider.downloader.WebAjaxDownloader;
 import com.ctbri.spider.model.Entity;
 import com.ctbri.spider.pipeline.JsonPipeline;
 
+/**
+ * 
+ * Copyright 2015 CTBRI
+ * All right reserved.
+ * <p>
+ *	一款垂直设计的爬虫，预先不知道有多少URL，所用通过获取一个页面中需要新加入的任务的方式持续抓取。
+ *	这种方式是一般爬虫的工作方式，汽车之家汽车参数和价格的页面爬虫就是本例。（在当前的架构模式下不可用，参考可用的{@link JDPageProcessor}）。
+ * </p>
+ * 
+ * @author Qun He
+ * @version 1.0.0
+ * @Create 2015年5月22日 下午2:12:43
+ */
 public class CarHomePageProcessor implements PageProcessor {
 
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等
@@ -147,9 +160,9 @@ public class CarHomePageProcessor implements PageProcessor {
         //开启5个线程同时执行
         .thread(1);
     	//启动监视器，cmd jconsole.exe查看状态 jmx
-    	if(Boolean.valueOf(SystemConstants.properties.getProperty(SystemConstants.PROXY_CRAWL))){
+    	if(Boolean.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.PROXY_CRAWL))){
     		a.getSite().setProxyReuseInterval(1000*5);
-    		String[] proxies = SystemConstants.properties.getProperty(SystemConstants.PROXY_QUEUE).split(";");
+    		String[] proxies = SystemConstants.propertiesConnection.getProperty(SystemConstants.PROXY_QUEUE).split(";");
     		List<String[]> pList = new ArrayList<>();
     		for (String proxy : proxies) {
     			if(proxy!=null && !proxy.trim().equals(""))

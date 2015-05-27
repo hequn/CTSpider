@@ -8,30 +8,33 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.Spider.Status;
 
 import com.ctbri.spider.cache.CacheHandler;
 
 /**
  * 
- *  Copyright 2014 SOGOU
- *  All right reserved.
- *	<p>
- *	The file tracker to track the file, if the menu of one product modified,
- *  the product will load again to update the information.
- *	</p>
+ * Copyright 2015 CTBRI
+ * All right reserved.
+ * <p>
+ *	The controller of the {@link BadPageReloader}. It will reload the 
+ *	files every period milliseconds and will stop only when the 
+ *	registered spider stopped.
+ * </p>
+ * 
  * @author Qun He
- * @Creat Time : 2014-9-2 下午2:51:12
- * @VersionFileTracker
+ * @version 1.0.0
+ * @Create 2015年5月22日 下午2:46:19
  */
-public class ShortageItemsLoader implements Runnable{
+public class BadPageReloaderController implements Runnable{
 
-	private int period = 1000*3600*6;//1000 seconds
+	private int period = 0;
 	private Spider spider = null;
-	private FailurePageReloader pageReloader = null;
+	private BadPageReloader pageReloader = null;
 	
-	private static Logger logger = Logger.getLogger(ShortageItemsLoader.class);
+	private static Logger logger = Logger.getLogger(BadPageReloaderController.class);
 		
-	public ShortageItemsLoader(int period, Spider spider, FailurePageReloader pageReloader) {
+	public BadPageReloaderController(int period, Spider spider, BadPageReloader pageReloader) {
 		super();
 		this.period = period;
 		this.spider = spider;
@@ -54,13 +57,13 @@ public class ShortageItemsLoader implements Runnable{
 				File[] needRecrawl = this.pageReloader.getReloadFiles();
 				
 				synchronized (CacheHandler.readWriteLock) {
+					logger.debug("Adding Failure Url to Scheduler");
 					for (File file : needRecrawl) {
 						String line = null;
 						BufferedReader fileReader = new BufferedReader(new FileReader(file));
 						while ((line = fileReader.readLine()) != null) {
 							String dealedUrl = pageReloader.pageReloadUrl(line);
 							spider.addUrl(dealedUrl);
-							logger.info("Adding Failure Url to Scheduler :"+ dealedUrl);
 						}
 						fileReader.close();
 						FileUtils.copyFileToDirectory(file, fileR);
@@ -68,8 +71,13 @@ public class ShortageItemsLoader implements Runnable{
 					}
 				}
 				Thread.sleep(period);
+				if(spider.getStatus()==Status.Stopped){
+					logger.info("The holded spider stopped by configuration updated, "
+							+ "stop the BadPageReloaderController too");
+					break;
+				}
 			} catch (Exception e) {
-				logger.error("Error happens",e);
+				logger.error("Error happens while adding the failure urls",e);
 			}
 		}
 	}
