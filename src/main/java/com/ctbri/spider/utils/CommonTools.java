@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -111,7 +112,7 @@ public class CommonTools {
 				break;
 			} catch (Exception e) {
 				logger.error("Redis connection errors, try it again :", e);
-				jedis.close();
+				if(jedis!=null) jedis.close();
 				try {
 					Thread.sleep(1000 * 5);
 				} catch (InterruptedException e1) {
@@ -159,6 +160,8 @@ public class CommonTools {
 						SystemConstants.ENTITY_CONTAINER, jsonEC));
 				// make it to utf8 encoding
 				httpost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+				RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(7000).setConnectTimeout(3000).build();//设置请求和传输超时时间
+				httpost.setConfig(requestConfig);//If the server is down the thread will wait for more than 24 hours
 				HttpResponse response = httpclient.execute(httpost);
 				HttpEntity entity = response.getEntity();
 				EntityUtils.consume(entity);
@@ -200,8 +203,10 @@ public class CommonTools {
 				nvps.add(new BasicNameValuePair(SystemConstants.KEY_ONLY, keyOnly));
 				nvps.add(new BasicNameValuePair(SystemConstants.REMOTE_SITE_NAME, siteName));
 				nvps.add(new BasicNameValuePair(SystemConstants.CACHED_QUEUE_SIZE, cachedQueueSize));
-				// make it to utf8 encoding
+				// set it to utf8 encoding
 				httpost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+				RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(7000).setConnectTimeout(3000).build();//设置请求和传输超时时间
+				httpost.setConfig(requestConfig);//If the server is down the thread will wait for more than 24 hours
 				HttpResponse response = httpclient.execute(httpost);
 				HttpEntity entity = response.getEntity();
 				result = IOUtils.toString(entity.getContent());
@@ -211,9 +216,9 @@ public class CommonTools {
 			}
 			logger.debug("Send the heartinfo to server successfully");
 		} catch (Exception e) {
-			logger.error("Send the heart beat info to server failed, please check the server",e);
+			logger.error("Send the heart beat info to server failed, please check the network",e);
 			//continue to crawl or not
-			//result = SystemConstants.HUNGUP;
+			result = SystemConstants.HUNGUP;
 		}
 		return result;
 	}

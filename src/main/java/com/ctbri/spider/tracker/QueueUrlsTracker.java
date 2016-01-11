@@ -31,8 +31,8 @@ public class QueueUrlsTracker {
 
 
 	private static int period = 1000*10;//ten seconds
-	private static int maxQueueSize = 2000;
-	private static int batchGetSize = 1000;
+	private static int maxQueueSize = 200;
+	private static int batchGetSize = 100;
 	private static Logger logger = Logger.getLogger(QueueUrlsTracker.class);
 	
 	/**
@@ -40,7 +40,7 @@ public class QueueUrlsTracker {
 	 */
 	public static void startTracker(){
 
-		CacheHandler.timerPool.scheduleAtFixedRate(new TimerTask() {
+		CacheHandler.timerPoolQU.scheduleAtFixedRate(new TimerTask() {
 			
 			@Override
 			public void run() {		
@@ -71,8 +71,10 @@ public class QueueUrlsTracker {
 	    			logger.debug("Try QueueUrlsTracker once");
 	    		} catch(Exception e){
 	    			logger.error("Error happens when tracking the queue "+queueKey,e);
+	    			if(jedis!=null) jedis.close();
 	    		}finally {
-	    			CacheHandler.jedisPool.returnResourceObject(jedis);
+	    			if(jedis!=null&&jedis.isConnected())
+	    				CacheHandler.jedisPool.returnResourceObject(jedis);
 	    		}
 			}
 		}, 0 , period, TimeUnit.MILLISECONDS);

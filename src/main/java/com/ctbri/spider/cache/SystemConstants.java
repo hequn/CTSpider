@@ -40,6 +40,7 @@ public class SystemConstants {
 	public static final String REDIS_MAX_WAIT="REDIS_MAX_WAIT";
 	public static final String REDIS_MAX_IDLE="REDIS_MAX_IDLE";
 	public static final String REDIS_TIME_OUT = "REDIS_TIME_OUT";
+	public static final String REDIS_PASSWORD = "REDIS_PASSWORD";
 	//the constant String in the propertiesControl properties
 	public static final String TH_COUNT = "TH_COUNT";
 	public static final String CRAWL_RATE = "CRAWL_RATE";

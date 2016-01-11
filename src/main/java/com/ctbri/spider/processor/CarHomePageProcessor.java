@@ -126,50 +126,50 @@ public class CarHomePageProcessor implements PageProcessor {
     	Spider a = Spider.create(new CarHomePageProcessor())
         //从https://github.com/code4craft开始抓    
         .addUrl("http://www.autohome.com.cn/grade/carhtml/a.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/b.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/c.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/d.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/e.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/f.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/g.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/h.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/i.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/j.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/k.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/l.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/m.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/n.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/o.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/p.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/q.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/r.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/s.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/t.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/u.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/v.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/w.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/x.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/y.html")
-//        .addUrl("http://www.autohome.com.cn/grade/carhtml/z.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/b.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/c.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/d.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/e.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/f.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/g.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/h.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/i.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/j.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/k.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/l.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/m.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/n.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/o.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/p.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/q.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/r.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/s.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/t.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/u.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/v.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/w.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/x.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/y.html")
+        .addUrl("http://www.autohome.com.cn/grade/carhtml/z.html")
         //设置Scheduler，使用Redis来管理URL队列
         //.setScheduler(new RedisScheduler(new JedisPool(new JedisPoolConfig(),"192.168.56.128", 6379)))
         //尝试使用SeleniumDownloader
         .setDownloader(new WebAjaxDownloader())//new OriginalDownloader()
         //设置Pipeline，将结果以json方式保存到文件
-        .addPipeline(new JsonPipeline("D:\\data\\webmagic"))//new GeneratePipeline()
+        .addPipeline(new JsonPipeline("/ctbri/webspider_carhome/data"))//new GeneratePipeline()
         //开启5个线程同时执行
-        .thread(1);
+        .thread(4);
     	//启动监视器，cmd jconsole.exe查看状态 jmx
-    	if(Boolean.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.PROXY_CRAWL))){
-    		a.getSite().setProxyReuseInterval(1000*5);
-    		String[] proxies = SystemConstants.propertiesConnection.getProperty(SystemConstants.PROXY_QUEUE).split(";");
-    		List<String[]> pList = new ArrayList<>();
-    		for (String proxy : proxies) {
-    			if(proxy!=null && !proxy.trim().equals(""))
-    				pList.add(proxy.split(":"));
-			}
-    		a.getSite().setHttpProxyPool(pList);
-    	}
+//    	if(Boolean.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.PROXY_CRAWL))){
+//    		a.getSite().setProxyReuseInterval(1000*5);
+//    		String[] proxies = SystemConstants.propertiesConnection.getProperty(SystemConstants.PROXY_QUEUE).split(";");
+//    		List<String[]> pList = new ArrayList<>();
+//    		for (String proxy : proxies) {
+//    			if(proxy!=null && !proxy.trim().equals(""))
+//    				pList.add(proxy.split(":"));
+//			}
+//    		a.getSite().setHttpProxyPool(pList);
+//    	}
     	try {
 			SpiderMonitor.instance().register(a);
 		} catch (JMException e) {

@@ -55,7 +55,8 @@ public class MainEntry {
     			jedisPoolConfig,
     			SystemConstants.propertiesConnection.getProperty(SystemConstants.REDIS_IP), 
     			Integer.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.REDIS_PORT)),
-    			Integer.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.REDIS_TIME_OUT))
+    			Integer.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.REDIS_TIME_OUT)),
+    			SystemConstants.propertiesConnection.getProperty(SystemConstants.REDIS_PASSWORD)
     	);
     	    	
 		//get the processor
@@ -90,31 +91,41 @@ public class MainEntry {
      */
     public static void setSystemConfigurationAndStart(Object targetPageP){
 		Jedis jedis = CommonTools.getJedisResource();
-		try {
-			String proJsonValue = null;
-			//check the server first and get the properties of the specific domain for targetPageP
-			while(proJsonValue==null || CacheHandler.confVersion == null){
-				//get the pro if it is null sleep and retry
-				proJsonValue= jedis.hget(
-						SystemConstants.PARAM_PREFIX + 
-						SystemConstants.propertiesConnection.getProperty(SystemConstants.DOMAIN_KEY),
-						SystemConstants.CONFIGURATION_KEY
-				);
-				//update the version of this configuration
-				CacheHandler.confVersion = jedis.hget(
-						SystemConstants.PARAM_PREFIX + 
-						SystemConstants.propertiesConnection.getProperty(SystemConstants.DOMAIN_KEY),
-						SystemConstants.PARAM_UPDATE_KEY
-				);
-				Thread.sleep(1000*5);
+		while(true) {
+			try {
+				String proJsonValue = null;
+				//check the server first and get the properties of the specific domain for targetPageP
+				while(proJsonValue==null || CacheHandler.confVersion == null){
+					//get the pro if it is null sleep and retry
+					proJsonValue= jedis.hget(
+							SystemConstants.PARAM_PREFIX + 
+							SystemConstants.propertiesConnection.getProperty(SystemConstants.DOMAIN_KEY),
+							SystemConstants.CONFIGURATION_KEY
+					);
+					//update the version of this configuration
+					CacheHandler.confVersion = jedis.hget(
+							SystemConstants.PARAM_PREFIX + 
+							SystemConstants.propertiesConnection.getProperty(SystemConstants.DOMAIN_KEY),
+							SystemConstants.PARAM_UPDATE_KEY
+					);
+					Thread.sleep(1000*5);
+				}
+				//parse the json string to object again
+				SystemConstants.propertiesControl = JSON.parseObject(proJsonValue, Properties.class);
+			}catch(Exception e){
+				logger.error("Error happens when connecting to the redis to get the configuration info",e);
+				if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				continue;
+			}finally {
+				//must be returned to the pool or it will be stuck up once the pool is exhausted
+				if(jedis!=null&&jedis.isConnected()) CacheHandler.jedisPool.returnResourceObject(jedis);
 			}
-			//parse the json string to object again
-			SystemConstants.propertiesControl = JSON.parseObject(proJsonValue, Properties.class);
-		} catch(Exception e){
-			logger.error("Error happens when connecting to the redis to get the configuration info",e);
-		}finally {
-			//must be returned to the pool or it will be stuck up once the pool is exhausted
-		  CacheHandler.jedisPool.returnResourceObject(jedis);
+			break;
 		}
 		logger.debug("Get the configuration info from the redis successfully. Start the spider next");
 		//if a spider already exists, which means the update configuration event happened, so kill it 

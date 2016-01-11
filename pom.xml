@@ -5,7 +5,7 @@
 
 	<groupId>com.ctbri.spider</groupId>
 	<artifactId>CTSpider</artifactId>
-	<version>1.0.0</version>
+	<version>2.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>CTSpider</name>
@@ -13,7 +13,7 @@
         A webmagic improved framework. It covers the whole lifecycle of crawler: downloading, url management, content
         extraction and persistent(Batch persist,too). It includes a JD specific crawler.
     </description>
-	<url>https://github.com/hequn/CTSpider/</url>
+	<url>https://github.com/hequn/CTSpider</url>
 	<developers>
 		<developer>
 			<id>hequn</id>
@@ -25,7 +25,7 @@
 		<connection>scm:git:git@github.com:hequn/CTSpider.git</connection>
 		<developerConnection>scm:git:git@github.com:hequn/CTSpider.git</developerConnection>
 		<url>git@github.com:hequn/CTSpider.git</url>
-		<tag>CTSpider-1.0.0</tag>
+		<tag>CTSpider-2.0.0</tag>
 	</scm>
 	<licenses>
 		<license>

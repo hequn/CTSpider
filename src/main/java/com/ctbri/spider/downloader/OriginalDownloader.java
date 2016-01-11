@@ -116,6 +116,11 @@ public class OriginalDownloader extends AbstractDownloader{
     }
 
     @Override
+    protected void onError(Request request) {
+    	logger.error("The url "+request.getUrl()+" has been retried too many times and can not be gotten, so here gives the error log !");
+    };
+    
+    @Override
     public void setThread(int thread) {
         httpClientGenerator.setPoolSize(thread);
     }

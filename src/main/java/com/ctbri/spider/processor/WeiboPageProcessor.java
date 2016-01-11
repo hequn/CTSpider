@@ -6,51 +6,47 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import us.codecraft.webmagic.Page;
-import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.processor.PageProcessor;
 
-import com.alibaba.fastjson.JSONArray;
 import com.ctbri.spider.cache.CacheHandler;
+import com.ctbri.spider.cache.SystemConstants;
 import com.ctbri.spider.downloader.OriginalDownloader;
+import com.ctbri.spider.downloader.WebAjaxDownloader;
 import com.ctbri.spider.entry.SpiderConfig;
 import com.ctbri.spider.model.Entity;
 import com.ctbri.spider.model.EntityContainer;
 import com.ctbri.spider.puter.BadPageReloader;
 import com.ctbri.spider.puter.PageBatchWriter;
-import com.ctbri.spider.utils.FileLoadTools;
 
-public class JDPageProcessor implements PageProcessor,SpiderConfig,PageBatchWriter,BadPageReloader {
+public class WeiboPageProcessor implements PageProcessor,SpiderConfig,PageBatchWriter,BadPageReloader {
 	
 	//定义logger，用于记录日志
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	//定义spider，null即可
 	private Spider spider = null;
 	//定义downloader，包括spider拿来定义在此的原因是暴露给process方法使用PageProcessor接口就是为此而设计
-	private Downloader downloader = new OriginalDownloader();
+	private Downloader downloader = new WebAjaxDownloader();
 
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等，header很重要，不同的业务逻辑需要的也不同，差异性极大
     private Site site = Site.me()
     		.setRetryTimes(6)
     		.setSleepTime(200)
     		.setCycleRetryTimes(6)
-    		.setTimeOut(15000)
-    		.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36")
+    		.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.130 Safari/537.36")
     		.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
     		.addHeader("Accept-Encoding", "gzip, deflate, sdch")
     		.addHeader("Accept-Language", "zh-CN,zh;q=0.8")
     		.addHeader("Cache-Control", "no-cache")
-    		.addHeader("Connection", "keep-alive");
-    //JD相关耦合性配置
-    private String jdPrice = "http://p.3.cn/prices/get?skuid=J_";
-       
+    		.addHeader("Connection", "keep-alive")
+    		.addHeader("Cookie", "SINAGLOBAL=8926377859897.912.1427704806534; YF-V5-G0=35ff6d315d1a536c0891f71721feb16e; _s_tentry=www.chinaavl.com; Apache=4438256893772.632.1436938597057; ULV=1436938597064:13:1:1:4438256893772.632.1436938597057:1434436321904; YF-Page-G0=f0e89c46e7ea678e9f91d029ec552e92; likeDot=1; YF-Ugrow-G0=5b31332af1361e117ff29bb32e4d8439; myuid=1793002255; login_sid_t=2d0d7a27c18dee32e9ba207273b6109f; WBtopGlobal_register_version=dac39c945742325f; SUS=SID-1793002255-1436941715-JA-hnx2a-7dbe7ded7ea37cc091f7103ef56e3e9b; SUE=es%3D3689125cc9fb6c16405680351c071370%26ev%3Dv1%26es2%3De01446ed9c28b016a3c3cdf617b7d969%26rs0%3DOcRqxkZeyp32W9xJnjA6enKHCKzWh9aZo5bVwO5tSqN4JKJGyaTBhVijx0NqWFK2Gsuxmg8u27IHY3UsIuZ4aNXXy2KIt%252BqubSVQKgPrPKaLjodXSAjVvRMVJZCep0t6aebU1Wrz2jUyg2IGtRsMv9TGhyxw17S8MO%252FdZ27kP4c%253D%26rv%3D0; SUP=cv%3D1%26bt%3D1436941715%26et%3D1437028115%26d%3Dc909%26i%3D3e9b%26us%3D1%26vf%3D0%26vt%3D0%26ac%3D0%26st%3D0%26uid%3D1793002255%26name%3Dhequn0815%2540163.com%26nick%3Dhequn0815%26fmp%3D%26lcp%3D2011-12-22%252011%253A55%253A31; SUB=_2A254oY3DDeTxGedJ4lER8CzOzjmIHXVb1vgLrDV8PUNbuNAMLWvGkW9aXag5ctdLNIjiFH2AKHqEP_64AA..; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W55w.g0Kq4ddGPAsF6Z7l2V5JpX5K2t; SUHB=0d4PFenR_VgCXD; ALF=1437546572; SSOLoginState=1436941715; un=hequn0815@163.com; UOR=www.testwo.com,widget.weibo.com,www.baidu.com")
+    		.addHeader("Host","weibo.com");
     
     // process是定制爬虫逻辑的核心接口，在这里编写抽取逻辑，JD的专属process逻辑
     /**
@@ -72,57 +68,25 @@ public class JDPageProcessor implements PageProcessor,SpiderConfig,PageBatchWrit
 		try {
 			String pUrl = page.getUrl().get();
 			int ind = pUrl.indexOf(".html");
-			String productId = pUrl.substring(19,ind);
+			String productId = pUrl.substring(19,20);
 			page.putField("productKey", productId);
 			String productName = page.getHtml().xpath("//div[@class='breadcrumb']").$("a[clstag$=mbNav-4]").xpath("/a/text()").get();
 			page.putField("productName", productName);
-//			最早使用PhantomJS，无界面浏览器加载，最终获得价格，但是效率很低
-//			String productPrice = page.getHtml().xpath("//strong[@id='jd-price']/text()").get().substring(1);
-//			page.putField("productPrice", productPrice);
-			Page pricePage = downloader.download(new Request(jdPrice+productId), spider);
-			//获得价格的url对于json，对于此页是事务性的事件，联动性
-			if(pricePage.isNeedCycleRetry()){
-				int retried;
-				for (retried = 0; retried < 10; retried++) {
-					pricePage = downloader.download(new Request(jdPrice+productId), spider);
-					if(!pricePage.isNeedCycleRetry()) break;
-					Thread.sleep(500);//暂停0.5秒
-				}
-				if(retried==10) pricePage = null;
-			}
-			if (pricePage!=null) {
-				JSONArray ja = JSONArray.parseArray(pricePage.getRawText());
-				String productPrice = (String) ja.getJSONObject(0).get("p");
-				double pTemp = Double.valueOf(productPrice);
-				if (pTemp > 0)
-					page.putField("productPrice", productPrice);
-				else {
-					page.putField("productPrice", null);
-					logger.debug("No price info : " + pUrl);
-				}
-			}else{
-				page.putField("productPrice", null);
-				logger.debug("No price info for jd price url, tried 10 times but not get price : " + pUrl);
-			}
+			String productPrice = page.getHtml().xpath("//strong[@id='jd-price']/text()").get().substring(1);
+			page.putField("productPrice", productPrice);
+
 			if(productName == null || "".equals(productName)) logger.info("No brand info : "+pUrl);
 		} catch (Exception e) {
-			if(page==null) logger.error("Retry too many times for a url, the info is recored in the log.");
-			else logger.error("Part or Null info page : "+page.getUrl().get()+" Info: "+e.getMessage());
+			logger.error("Part or Null info page : "+page.getUrl().get()+" Info: "+e.getMessage());
 		}
     }
 	
 	@Override
 	public void initBatchWritePos(String saveLocation) throws Exception{
 		File file = new File(saveLocation);
-		if(!file.exists()) file.mkdirs();
-		File fileFull = new File(saveLocation+"/FullParams");
+		if(!file.exists()) file.mkdir();
+		File fileFull = new File(saveLocation+"/PageItems");
 		if(!fileFull.exists()) fileFull.mkdir();
-		File fileSOB = new File(saveLocation+"/ShortOfBrand");
-		if(!fileSOB.exists()) fileSOB.mkdir();
-		File fileSOP = new File(saveLocation+"/ShortOfPrice");
-		if(!fileSOP.exists()) fileSOP.mkdir();
-		File fileSOA = new File(saveLocation+"/ShortOfAll");
-		if(!fileSOA.exists()) fileSOA.mkdir();	
 	}
 	
 	@Override
@@ -131,13 +95,7 @@ public class JDPageProcessor implements PageProcessor,SpiderConfig,PageBatchWrit
 		String dateTime = sdf.format(new Date());
 		String keyID = UUID.randomUUID().toString();
 		String tmpFull = saveLocation+"/FullParams/"+keyID;
-		String tmpShortOfBrand = saveLocation+"/ShortOfBrand/"+keyID;
-		String tmpShortOfPrice = saveLocation+"/ShortOfPrice/"+keyID;
-		String tmpShortOfAll = saveLocation+"/ShortOfAll/"+keyID;
 		PrintWriter printWriter1 = new PrintWriter(new File(tmpFull),"gbk");
-		PrintWriter printWriter2 = new PrintWriter(new File(tmpShortOfBrand),"gbk");
-		PrintWriter printWriter3 = new PrintWriter(new File(tmpShortOfPrice),"gbk");
-		PrintWriter printWriter4 = new PrintWriter(new File(tmpShortOfAll),"gbk");
 		EntityContainer ec = new EntityContainer();
 		ec.setDomainKey(site.getDomain());
 		ec.getParamsOrder().add("productString");
@@ -151,42 +109,30 @@ public class JDPageProcessor implements PageProcessor,SpiderConfig,PageBatchWrit
 			String key = (String) e.getItemParams().get("productKey");
 			String pName = (String) e.getItemParams().get("productName");
 			String pPrice = (String) e.getItemParams().get("productPrice");
-			if(pName==null&&pPrice==null) printWriter4.println("1101"+key+"\t"+pName+"\t"+"-1"+"\t"+dateTime);
-			else if(pName!=null&&pPrice==null) printWriter3.println("1101"+key+"\t"+pName+"\t"+"-1"+"\t"+dateTime);
-			else if(pName==null&&pPrice!=null) printWriter2.println("1101"+key+"\t"+pName+"\t"+pPrice+"\t"+dateTime);
-			else printWriter1.println("1101"+key+"\t"+pName+"\t"+pPrice+"\t"+dateTime);
+
 			if(pPrice == null) e.getItemParams().put("productPrice","-1");
 			e.getItemParams().put("productString", "1101");
 			e.getItemParams().put("dateTime", dateTime);
 			ec.getEntities().add(e);
 		}
 		printWriter1.close();
-		printWriter2.close();
-		printWriter3.close();
-		printWriter4.close();
 		
 		return ec;
 	}
 	
 	@Override
 	public File initReloadBackPos(String saveLocation) throws Exception {
-		File fileR = new File(saveLocation+"/RetriedItems");
-		if(!fileR.exists()) fileR.mkdir();
-		return fileR;
+		return null;
 	}
 	
 	@Override
 	public File[] getReloadFiles(String saveLocation) throws Exception{
-		File[] filesSPrice = FileLoadTools.getFilesByDirectory(saveLocation+"/ShortOfPrice");
-		File[] filesSAll = FileLoadTools.getFilesByDirectory(saveLocation+"/ShortOfAll");
-		File[] needRecrawl = ArrayUtils.addAll(filesSPrice, filesSAll);
-		return needRecrawl;
+		return null;
 	}
 
 	@Override
 	public String pageReloadUrl(String oneLine) throws Exception{
-		String[] items = oneLine.split(" ");
-		return "http://item.jd.com/"+items[0]+".html";		
+		return null;		
 	}
 	//上面三个重写的方法逻辑和内容均不需要改变
 	@Override

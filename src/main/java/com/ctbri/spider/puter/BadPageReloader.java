@@ -32,10 +32,11 @@ public interface BadPageReloader {
 	 * <p>
 	 * 	Get the reload files (They will be read by line).
 	 * </p>
+	 * @param saveLocation the location configured in property files
 	 * @return the files should be reloaded.
 	 * @throws Exception
 	 */
-	public File[] getReloadFiles() throws Exception;
+	public File[] getReloadFiles(String saveLocation) throws Exception;
 	
 	/**
 	 * 
@@ -43,10 +44,11 @@ public interface BadPageReloader {
 	 * 	Initial the backup directory to store the reloaded files. These files 
 	 * 	will be deleted after reloading procedure.
 	 * </p>
+	 * @param saveLocation the location configured in property files
 	 * @return the directory for backup reload files
 	 * @throws Exception
 	 */
-	public File initReloadBackPos() throws Exception;
+	public File initReloadBackPos(String saveLocation) throws Exception;
 	
 	/**
 	 * 

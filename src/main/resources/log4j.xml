@@ -3,9 +3,9 @@
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 
 	<appender name="stdout" class="org.apache.log4j.RollingFileAppender">
-		<param name="File" value="d:/data/jd/logs/carhome.log"></param>
+		<param name="File" value="/ctbri/webspider/logs.log"></param>
 		<param name="ImmediateFlush" value="true" />
-		<param name="Threshold" value="info"></param>
+		<param name="Threshold" value="warn"></param>
 		<param name="Append" value="true"></param>
 		<param name="MaxFileSize" value="102400KB"></param>
 		<param name="MaxBackupIndex" value="1000"></param>
@@ -16,6 +16,7 @@
 
 	<!-- 把INFO信息输出到控制台 -->
 	<appender name="INFOConsole" class="org.apache.log4j.ConsoleAppender">
+		<param name="Threshold" value="info"></param>
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern" value="%-5p  %d{MM-dd HH:mm:ss} %m%n" />
 		</layout>

@@ -46,7 +46,7 @@ public class PageBatchWriterController implements Runnable{
 		
 		logger.info("The PageBatchWriterController starts");
 		try {
-			this.pageBatchWriter.initBatchWritePos();
+			this.pageBatchWriter.initBatchWritePos(SystemConstants.propertiesControl.getProperty(SystemConstants.SAVE_LOCATION));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -98,7 +98,11 @@ public class PageBatchWriterController implements Runnable{
 	 */
 	private void writeNewItems() throws Exception{
 		synchronized (CacheHandler.readWriteLock) {
-			EntityContainer ec = pageBatchWriter.pageBatchWrite(maxQueueSize);
+			EntityContainer ec = pageBatchWriter.pageBatchWrite(maxQueueSize,SystemConstants.propertiesControl.getProperty(SystemConstants.SAVE_LOCATION));
+			if(ec == null) {
+				logger.debug("No need to send to the server, just write the files to local location.");
+				return;
+			}
 			boolean sendF = CommonTools.sendCrawlResults(
 				SystemConstants.propertiesConnection.getProperty(SystemConstants.CTSERVER_IP),
 				SystemConstants.propertiesConnection.getProperty(SystemConstants.CTSERVER_PORT),

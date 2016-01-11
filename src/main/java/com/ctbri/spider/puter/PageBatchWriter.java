@@ -24,9 +24,10 @@ public interface PageBatchWriter {
 	 * <p>
 	 * 	Initial the position folders for saving the items.
 	 * </p>
+	 * @param saveLocation the location configured in property files
 	 * @throws Exception
 	 */
-	public void initBatchWritePos() throws Exception;
+	public void initBatchWritePos(String saveLocation) throws Exception;
 	
 	/**
 	 * 
@@ -34,9 +35,10 @@ public interface PageBatchWriter {
 	 * 	Batch write the items to files.
 	 * </p>
 	 * @param maxPageCount the max size to write out at one time
+	 * @param saveLocation the location configured in property files
 	 * @return the results container which will be sent to the server next
 	 * @throws Exception
 	 */
-	public EntityContainer pageBatchWrite(int maxPageCount) throws Exception;
+	public EntityContainer pageBatchWrite(int maxPageCount,String saveLocation) throws Exception;
 
 }

@@ -30,8 +30,10 @@ public class CacheHandler {
 	public static final BlockingQueue<Entity> resultLines = new LinkedBlockingQueue<>();
 	//because of using too many redis connections is a waste of time, using cached queue to batch get urls 
 	public static final BlockingQueue<String> cachedNoExtraUrls = new LinkedBlockingQueue<>();
-	//the timerPool for execute QueueUrlsTracker and UpdateInfoTracker
-	public static final ScheduledExecutorService timerPool = Executors.newScheduledThreadPool(2); 
+	//the timerPool for execute QueueUrlsTracker
+	public static final ScheduledExecutorService timerPoolQU = Executors.newScheduledThreadPool(1); 
+	//the timerPool for execute UpdateInfoTracker
+	public static final ScheduledExecutorService timerPoolUI = Executors.newScheduledThreadPool(1); 
 	//the synchronized key for BadPageReloaderController and PageBatchWriterController
 	public static final String readWriteLock = new String("readWriteLock");
 	//the jedisPool to get redis resources

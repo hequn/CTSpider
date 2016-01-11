@@ -41,7 +41,7 @@ public class WebAjaxDownloader extends AbstractDownloader{
     }
 
     protected Page handleResponse(Request request,  Task task) throws IOException {
-        String content = getAjaxCotnent(request.getUrl());//getContent(charset, httpResponse);
+        String content = getAjaxContent(request.getUrl());//getContent(charset, httpResponse);
         Page page = new Page();
         page.setRawText(content);
         page.setUrl(new PlainText(request.getUrl()));
@@ -50,9 +50,10 @@ public class WebAjaxDownloader extends AbstractDownloader{
         return page;
     }
    
-    protected String getAjaxCotnent(String url) throws IOException {
+    protected String getAjaxContent(String url) throws IOException {
         Runtime rt = Runtime.getRuntime();
-        Process p = rt.exec(SystemConstants.propertiesControl.getProperty(SystemConstants.PJ_COMMAND)+url);//PhantomJS 处理
+        //Process p = rt.exec(SystemConstants.propertiesControl.getProperty(SystemConstants.PJ_COMMAND)+url);//PhantomJS 处理
+        Process p = rt.exec("phantomjs /ctbri/phantomjs/bin/codes.js "+url);//PhantomJS 处理
         InputStream is = p.getInputStream();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         StringBuffer sbf = new StringBuffer();

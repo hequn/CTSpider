@@ -1,10 +1,24 @@
 package com.ctbri.spider.ctbigdata;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import redis.clients.jedis.Jedis;
+
+import com.ctbri.spider.cache.CacheHandler;
+import com.ctbri.spider.cache.SystemConstants;
+import com.ctbri.spider.entry.MainEntry;
+import com.ctbri.spider.utils.CommonTools;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -98,6 +112,45 @@ public class AppTest
     	
 //    	String ta = null;
 //    	ta.split("e");
+    	pw.close();
+    }
+    
+    public void testTimer() throws InterruptedException{
+    	ScheduledExecutorService timerPool = Executors.newScheduledThreadPool(2); 
+		timerPool.scheduleAtFixedRate(new TimerTask() {
+			
+			@Override
+			public void run() {
+				String a= "";
+					    		try {
+	    			System.out.println(Thread.currentThread().getId());
+	    			if(Thread.currentThread().getId()%2==0){
+	    				String test = null;
+	    				//test.equals("1");
+	    				return;
+	    			}
+	    		} catch(Exception e){
+	    			e.printStackTrace();
+	    			a=SystemConstants.HUNGUP;
+	    		}
+					    		System.out.println(Thread.currentThread().getId()+"--test"+a);
+			}
+		}, 0 , 10000, TimeUnit.MILLISECONDS);
+		
+		Thread.sleep(Long.MAX_VALUE);
+    }
+    
+    public void testLianjia() throws Exception{
+    	File file = new File("f:/lianjia.txt");
+    	PrintWriter pw = new PrintWriter(new FileWriter(file));
+    	String tpl = "http://sh.lianjia.com/ershoufang/SH%s.html";
+    	//1241024
+    	DecimalFormat df = new DecimalFormat("0000000000");
+    	for(int i = 275010;i<1241024;i++){
+    		pw.println(String.format(tpl, df.format(i)));    		
+    	}
+    	
+    	pw.flush();
     	pw.close();
     }
 }

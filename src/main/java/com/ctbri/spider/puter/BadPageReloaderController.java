@@ -11,6 +11,7 @@ import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.Spider.Status;
 
 import com.ctbri.spider.cache.CacheHandler;
+import com.ctbri.spider.cache.SystemConstants;
 
 /**
  * 
@@ -46,7 +47,7 @@ public class BadPageReloaderController implements Runnable{
 		
 		File fileR = null;
 		try {
-			fileR = this.pageReloader.initReloadBackPos();
+			fileR = this.pageReloader.initReloadBackPos(SystemConstants.propertiesControl.getProperty(SystemConstants.SAVE_LOCATION));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -54,7 +55,7 @@ public class BadPageReloaderController implements Runnable{
 		while(true){
 			try {
 
-				File[] needRecrawl = this.pageReloader.getReloadFiles();
+				File[] needRecrawl = this.pageReloader.getReloadFiles(SystemConstants.propertiesControl.getProperty(SystemConstants.SAVE_LOCATION));
 				
 				synchronized (CacheHandler.readWriteLock) {
 					logger.debug("Adding Failure Url to Scheduler");

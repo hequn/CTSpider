@@ -60,15 +60,27 @@ public class RedisCachedScheduler extends DuplicateRemovedScheduler implements M
     @Override
     protected void pushWhenNoDuplicate(Request request, Task task) {
         Jedis jedis = CommonTools.getJedisResource();
-        try {
-            jedis.rpush(getQueueKey(task), request.getUrl());
-            if (request.getExtras() != null) {
-                String field = DigestUtils.shaHex(request.getUrl());
-                String value = JSON.toJSONString(request);
-                jedis.hset((ITEM_PREFIX + task.getUUID()), field, value);
-            }
-        } finally {
-            pool.returnResourceObject(jedis);
+        while(true){
+        	try {
+        		jedis.rpush(getQueueKey(task), request.getUrl());
+        		if (request.getExtras() != null) {
+        			String field = DigestUtils.shaHex(request.getUrl());
+        			String value = JSON.toJSONString(request);
+        			jedis.hset((ITEM_PREFIX + task.getUUID()), field, value);
+        		}
+        	}catch(Exception e){
+				logger.error("Error happens when connecting to the redis to push the url to redis",e);
+				if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				continue;
+        	}finally {
+        		if(jedis!=null&&jedis.isConnected()) pool.returnResourceObject(jedis);
+        	}
+        	break;
         }
     }
 
@@ -78,25 +90,38 @@ public class RedisCachedScheduler extends DuplicateRemovedScheduler implements M
     	if(CacheHandler.hungUp==true||
     			CacheHandler.workerSignal.equals(SystemConstants.HUNGUP)) return null;
     	Jedis jedis = null;
-        try {
-            String url = CacheHandler.cachedNoExtraUrls.poll();
-            if (url == null) {
-                return null;
-            }
-            jedis = CommonTools.getJedisResource();
-            String key = ITEM_PREFIX + task.getUUID();
-            String field = DigestUtils.shaHex(url);
-            //for retried urls
-            byte[] bytes = jedis.hget(key.getBytes(), field.getBytes());
-            if (bytes != null) {
-                Request o = JSON.parseObject(new String(bytes), Request.class);
-                return o;
-            }
-            Request request = new Request(url);
-            return request;
-        } finally {
-           if(jedis!=null) pool.returnResourceObject(jedis);
-        }
+    	while(true){
+	        try {
+	            String url = CacheHandler.cachedNoExtraUrls.poll();
+	            if (url == null) {
+	                return null;
+	            }
+	            jedis = CommonTools.getJedisResource();
+	            String key = ITEM_PREFIX + task.getUUID();
+	            String field = DigestUtils.shaHex(url);
+	            //for retried urls
+	            byte[] bytes = jedis.hget(key.getBytes(), field.getBytes());
+	            if (bytes != null) {
+	                Request o = JSON.parseObject(new String(bytes), Request.class);
+	                jedis.hdel(key.getBytes(), field.getBytes());
+	                return o;
+	            }
+	            Request request = new Request(url);
+	            return request;
+	        } catch(Exception e){
+	        	logger.error("Error when getting the to be retried url (Request object) for "+ task.getUUID(),e);
+	        	if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+	        }
+	        finally {
+	           if(jedis!=null&&jedis.isConnected()) 
+	        	   pool.returnResourceObject(jedis);
+	        }
+    	}
     }
 
     protected String getQueueKey(Task task) {
@@ -106,22 +131,44 @@ public class RedisCachedScheduler extends DuplicateRemovedScheduler implements M
     @Override
     public int getLeftRequestsCount(Task task) {
         Jedis jedis = CommonTools.getJedisResource();
-        try {
-            Long size = jedis.llen(getQueueKey(task));
-            return size.intValue();
-        } finally {
-            pool.returnResourceObject(jedis);
+        while(true){
+	        try {
+	            Long size = jedis.llen(getQueueKey(task));
+	            return size.intValue();
+	        }catch(Exception e){
+				logger.error("Error happens when connecting to the redis to get the left queue count",e);
+				if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				continue;
+	    	}finally {
+	            if(jedis!=null&&jedis.isConnected()) pool.returnResourceObject(jedis);
+	        }
         }
     }
 
     @Override
     public int getTotalRequestsCount(Task task) {
         Jedis jedis = CommonTools.getJedisResource();
-        try {
-            Long size = jedis.scard(getQueueKey(task));
-            return size.intValue();
-        } finally {
-            pool.returnResourceObject(jedis);
+        while(true){
+	        try {
+	            Long size = jedis.scard(getQueueKey(task));
+	            return size.intValue();
+	        }catch(Exception e){
+				logger.error("Error happens when connecting to the redis to get the request count",e);
+				if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				continue;
+	    	}finally {
+	            if(jedis!=null&&jedis.isConnected()) pool.returnResourceObject(jedis);
+	        }
         }
     }
 }
