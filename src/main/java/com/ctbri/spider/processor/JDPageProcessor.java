@@ -38,10 +38,6 @@ public class JDPageProcessor implements PageProcessor,SpiderConfig,PageBatchWrit
 
     // 部分一：抓取网站的相关配置，包括编码、抓取间隔、重试次数等，header很重要，不同的业务逻辑需要的也不同，差异性极大
     private Site site = Site.me()
-    		.setRetryTimes(6)
-    		.setSleepTime(200)
-    		.setCycleRetryTimes(6)
-    		.setTimeOut(15000)
     		.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36")
     		.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
     		.addHeader("Accept-Encoding", "gzip, deflate, sdch")

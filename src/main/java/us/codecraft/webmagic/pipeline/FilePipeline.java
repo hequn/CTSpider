@@ -39,21 +39,12 @@ public class FilePipeline extends FilePersistentBase implements Pipeline {
 
     @Override
     public void process(ResultItems resultItems, Task task) {
-        String path = this.path + PATH_SEPERATOR + task.getUUID() + PATH_SEPERATOR;
+		String url = (String) resultItems.get("url");
+		String content = (String) resultItems.get("content");
         try {
-            PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(getFile(path + DigestUtils.md5Hex(resultItems.getRequest().getUrl()) + ".html")),"UTF-8"));
-            printWriter.println("url:\t" + resultItems.getRequest().getUrl());
-            for (Map.Entry<String, Object> entry : resultItems.getAll().entrySet()) {
-                if (entry.getValue() instanceof Iterable) {
-                    Iterable value = (Iterable) entry.getValue();
-                    printWriter.println(entry.getKey() + ":");
-                    for (Object o : value) {
-                        printWriter.println(o);
-                    }
-                } else {
-                    printWriter.println(entry.getKey() + ":\t" + entry.getValue());
-                }
-            }
+            PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(new FileOutputStream(getFile(path + url)),"UTF-8"));
+            printWriter.println(content);
+            printWriter.flush();
             printWriter.close();
         } catch (IOException e) {
             logger.warn("write file error", e);

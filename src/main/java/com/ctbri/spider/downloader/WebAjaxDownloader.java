@@ -53,7 +53,8 @@ public class WebAjaxDownloader extends AbstractDownloader{
     protected String getAjaxContent(String url) throws IOException {
         Runtime rt = Runtime.getRuntime();
         //Process p = rt.exec(SystemConstants.propertiesControl.getProperty(SystemConstants.PJ_COMMAND)+url);//PhantomJS 处理
-        Process p = rt.exec("phantomjs /ctbri/phantomjs/bin/codes.js "+url);//PhantomJS 处理
+        //Process p = rt.exec("phantomjs /ctbri/phantomjs/bin/codes.js "+url);//PhantomJS 处理
+        Process p = rt.exec("D:/Software/phantomjs-2.0.0-windows/bin/phantomjs.exe D:/Software/phantomjs-2.0.0-windows/bin/codes.js "+url);//PhantomJS 处理
         InputStream is = p.getInputStream();
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         StringBuffer sbf = new StringBuffer();

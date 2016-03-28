@@ -44,6 +44,9 @@ public class SystemConstants {
 	//the constant String in the propertiesControl properties
 	public static final String TH_COUNT = "TH_COUNT";
 	public static final String CRAWL_RATE = "CRAWL_RATE";
+	public static final String RETRIED_TIMES = "RETRIED_TIMES";
+	public static final String CYCLE_RETRIED_TIMES = "CYCLE_RETRIED_TIMES";
+	public static final String DOWNLOAD_TIMEOUT = "DOWNLOAD_TIMEOUT";
 	public static final String WAIT_EMPTY = "WAIT_EMPTY";	
 	public static final String PROXY_CRAWL = "PROXY_CRAWL";
 	public static final String PROXY_QUEUE = "PROXY_QUEUE";
@@ -54,6 +57,7 @@ public class SystemConstants {
 	public static final String RESULT_MAX_QUEUE = "RESULT_MAX_QUEUE";
 	public static final String RELOAD_SHORTAGE_PAGE = "RELOAD_SHORTAGE_PAGE";
 	public static final String NET_ETH = "NET_ETH";
+	public static final String MIXED_VERSION = "MIXED_VERSION";
 	
 	//the constants of the system
 	public static final String SPLITTER = "/";

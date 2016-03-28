@@ -35,6 +35,7 @@ import us.codecraft.webmagic.selector.PlainText;
 import us.codecraft.webmagic.utils.HttpConstant;
 import us.codecraft.webmagic.utils.UrlUtils;
 
+import com.ctbri.spider.cache.SystemConstants;
 import com.google.common.collect.Sets;
 
 public class OriginalDownloader extends AbstractDownloader{
@@ -45,21 +46,28 @@ public class OriginalDownloader extends AbstractDownloader{
 
     private HttpClientGenerator httpClientGenerator = new HttpClientGenerator();
 
-    private CloseableHttpClient getHttpClient(Site site) {
-        if (site == null) {
-            return httpClientGenerator.getClient(null);
-        }
-        String domain = site.getDomain();
-        CloseableHttpClient httpClient = httpClients.get(domain);
-        if (httpClient == null) {
-            synchronized (this) {
-                httpClient = httpClients.get(domain);
-                if (httpClient == null) {
-                    httpClient = httpClientGenerator.getClient(site);
-                    httpClients.put(domain, httpClient);
-                }
-            }
-        }
+    private CloseableHttpClient getHttpClient(String url, Site site) {
+    	
+    	if (site == null) {
+    		return httpClientGenerator.getClient(null);
+    	}
+    	
+    	String domain = null;
+    	CloseableHttpClient httpClient = null;
+    	Boolean mixedVersion = Boolean.valueOf(SystemConstants.propertiesConnection.getProperty(SystemConstants.MIXED_VERSION));   	
+    	if(mixedVersion){
+    		domain = UrlUtils.getDomain(url);
+    	}
+    	httpClient = httpClients.get(domain);
+    	if (httpClient == null) {
+    		synchronized (this) {
+    			httpClient = httpClients.get(domain);
+    			if (httpClient == null) {
+    				httpClient = httpClientGenerator.getClient(site);
+    				httpClients.put(domain, httpClient);
+    			}
+    		}
+    	}
         return httpClient;
     }
 
@@ -84,7 +92,7 @@ public class OriginalDownloader extends AbstractDownloader{
         int statusCode=0;
         try {
             HttpUriRequest httpUriRequest = getHttpUriRequest(request, site, headers);
-            httpResponse = getHttpClient(site).execute(httpUriRequest);
+            httpResponse = getHttpClient(request.getUrl(),site).execute(httpUriRequest);
             statusCode = httpResponse.getStatusLine().getStatusCode();
             request.putExtra(Request.STATUS_CODE, statusCode);
             if (statusAccept(acceptStatCode, statusCode)) {

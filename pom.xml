@@ -5,7 +5,7 @@
 
 	<groupId>com.ctbri.spider</groupId>
 	<artifactId>CTSpider</artifactId>
-	<version>2.0.1-SNAPSHOT</version>
+	<version>2.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>CTSpider</name>
@@ -371,7 +371,7 @@
 					</plugin>
 				</plugins>
 			</build>
-			<distributionManagement>
+			<!--<distributionManagement>
 				<snapshotRepository>
 					<id>sonatype-nexus-snapshots</id>
 					<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -380,7 +380,7 @@
 					<id>sonatype-nexus-staging</id>
 					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 				</repository>
-			</distributionManagement>
+			</distributionManagement> -->
 		</profile>
 	</profiles>
 </project>

@@ -23,7 +23,7 @@ import com.ctbri.spider.puter.BadPageReloader;
 import com.ctbri.spider.puter.PageBatchWriter;
 import com.ctbri.spider.utils.FileLoadTools;
 
-public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,PageBatchWriter,BadPageReloader {
+public class FangToFileProcessor implements PageProcessor,SpiderConfig,PageBatchWriter,BadPageReloader {
 	
 	//定义logger，用于记录日志
 	private Logger logger = LoggerFactory.getLogger(getClass());
@@ -59,8 +59,16 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
     public void process(Page page) {
         // 部分二：定义如何抽取页面信息，并保存下来
 		try {
-			page.putField("url", Base64.encodeBase64String(page.getUrl().get().getBytes()));
-			page.putField("content", page.getHtml().get());
+			String nowUrl = page.getUrl().get();
+			if(nowUrl.matches("http://esf.sh.fang.com/chushou/[0-9]_[0-9]+.htm")){
+				page.putField("url", Base64.encodeBase64String(page.getUrl().get().getBytes()));
+				String result = page.getHtml().get().replaceAll("[\r\n]", "");
+				page.putField("content",result);
+			}else{
+		    	page.addTargetRequests(page.getHtml().links().regex("(http://esf.sh.fang.com/house.*)").all());
+		    	page.addTargetRequests(page.getHtml().links().regex("(http://esf.sh.fang.com/chushou/[0-9]_[0-9]+.htm)").all());
+				page.setSkip(true);
+			}
 		} catch (Exception e) {
 			//page.setSkip(true);
 			logger.info("Exception Happened!"+e.getMessage());
@@ -71,7 +79,7 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
 	public void initBatchWritePos(String saveLocation) throws Exception{
 		File file = new File(saveLocation);
 		if(!file.exists()) file.mkdirs();
-		File fileFull = new File(saveLocation+"/linkedHome");
+		File fileFull = new File(saveLocation+"/fangErshou");
 		if(!fileFull.exists()) fileFull.mkdir();
 	}
 	
@@ -85,7 +93,7 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
 			String url = (String) e.getItemParams().get("url");
 			String content = (String) e.getItemParams().get("content");
 			
-			PrintWriter printWriter = new PrintWriter(new File(saveLocation+"/linkedHome/"+url),"utf-8");
+			PrintWriter printWriter = new PrintWriter(new File(saveLocation+"/fangErshou/"+url),"utf-8");
 			printWriter.print(content);
 			printWriter.flush();
 			printWriter.close();

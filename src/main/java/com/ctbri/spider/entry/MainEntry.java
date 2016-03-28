@@ -164,6 +164,12 @@ public class MainEntry {
     	CacheHandler.spider = spider;
     	//the crawling rate between two urls , this parameter is very important for effecting the spider efficient
     	pageProcessor.getSite().setSleepTime(Integer.valueOf(SystemConstants.propertiesControl.getProperty(SystemConstants.CRAWL_RATE)));
+    	//the retried times for one failed url
+    	pageProcessor.getSite().setRetryTimes(Integer.valueOf(SystemConstants.propertiesControl.getProperty(SystemConstants.RETRIED_TIMES)));
+    	//the retried times for one failed url
+    	pageProcessor.getSite().setCycleRetryTimes(Integer.valueOf(SystemConstants.propertiesControl.getProperty(SystemConstants.CYCLE_RETRIED_TIMES)));
+    	//the connection timeout for per download
+    	pageProcessor.getSite().setTimeOut(Integer.valueOf(SystemConstants.propertiesControl.getProperty(SystemConstants.DOWNLOAD_TIMEOUT)));
     	//set the right domain key to the processor, all of the controlling use the domain string
     	pageProcessor.getSite().setDomain(SystemConstants.propertiesConnection.getProperty(SystemConstants.DOMAIN_KEY));
     	//using proxy or not

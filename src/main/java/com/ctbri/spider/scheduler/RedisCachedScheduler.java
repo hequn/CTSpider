@@ -35,7 +35,9 @@ public class RedisCachedScheduler extends DuplicateRemovedScheduler implements M
     private JedisPool pool;
 
     private static final String QUEUE_PREFIX = "queue_";
-
+    
+    private static final String SET_PREFIX = "set_";
+    
     private static final String ITEM_PREFIX = "item_";
     
     public RedisCachedScheduler(String host) {
@@ -49,12 +51,50 @@ public class RedisCachedScheduler extends DuplicateRemovedScheduler implements M
 
     @Override
     public void resetDuplicateCheck(Task task) {
-        
+        Jedis jedis = CommonTools.getJedisResource();
+        while(true){
+        	try {
+        		jedis.del(getSetKey(task));
+        	}catch(Exception e){
+				logger.error("Error happens when connecting to the redis to resetDuplicateCheck",e);
+				if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				continue;
+        	}finally {
+        		if(jedis!=null&&jedis.isConnected()) pool.returnResourceObject(jedis);
+        	}
+        	break;
+        }
     }
 
     @Override
     public boolean isDuplicate(Request request, Task task) {
-        return false;
+
+        Jedis jedis = CommonTools.getJedisResource();
+        while(true){
+        	try {
+                boolean isDuplicate = jedis.sismember(getSetKey(task), request.getUrl());
+                if (!isDuplicate) {
+                    jedis.sadd(getSetKey(task), request.getUrl());
+                }
+                return isDuplicate;
+            }catch(Exception e){
+				logger.error("Error happens when connecting to the redis to check if isDuplicate",e);
+				if(jedis!=null) jedis.close();
+				try {
+					Thread.sleep(1000*5);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				continue;
+        	}finally {
+        		if(jedis!=null&&jedis.isConnected()) pool.returnResourceObject(jedis);
+        	}
+        }
     }
 
     @Override
@@ -123,7 +163,11 @@ public class RedisCachedScheduler extends DuplicateRemovedScheduler implements M
 	        }
     	}
     }
-
+    
+    protected String getSetKey(Task task) {
+        return SET_PREFIX + task.getUUID();
+    }
+    
     protected String getQueueKey(Task task) {
         return QUEUE_PREFIX + task.getUUID();
     }

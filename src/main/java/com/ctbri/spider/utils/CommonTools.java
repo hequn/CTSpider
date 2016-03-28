@@ -149,9 +149,11 @@ public class CommonTools {
 	public static boolean sendCrawlResults(String ip, String port,String server,
 			EntityContainer entityContainer) {
 		boolean result = true;
+		CloseableHttpClient httpclient = null;
 		try {
 			String jsonEC = JSON.toJSONString(entityContainer);
-			CloseableHttpClient httpclient = HttpClients.createDefault();
+			httpclient = HttpClients.createDefault();
+			HttpEntity entity = null;
 			try {
 				HttpPost httpost = new HttpPost("http://" + ip + ":" + port+"/"+ server+ "/SaverServlet");
 				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
@@ -160,13 +162,13 @@ public class CommonTools {
 						SystemConstants.ENTITY_CONTAINER, jsonEC));
 				// make it to utf8 encoding
 				httpost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
-				RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(7000).setConnectTimeout(3000).build();//设置请求和传输超时时间
+				RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(15000).setConnectTimeout(10000).build();//设置请求和传输超时时间
 				httpost.setConfig(requestConfig);//If the server is down the thread will wait for more than 24 hours
 				HttpResponse response = httpclient.execute(httpost);
-				HttpEntity entity = response.getEntity();
-				EntityUtils.consume(entity);
+				entity = response.getEntity();
 			} finally {
-				httpclient.close();
+				if(entity!= null) EntityUtils.consume(entity);
+				if(httpclient != null) httpclient.close();
 			}
 			logger.debug("Send the results to server successfully");
 		} catch (Exception e) {
@@ -193,8 +195,10 @@ public class CommonTools {
 	public static String sendHeartBeatInfo(String ip, String port,String server,
 			String siteName,String cachedQueueSize,String keyOnly,boolean initial) {
 		String result = SystemConstants.RUNNING;
+		CloseableHttpClient httpclient = null;
 		try {
-			CloseableHttpClient httpclient = HttpClients.createDefault();
+			HttpEntity entity = null;
+			httpclient = HttpClients.createDefault();
 			try {
 				HttpPost httpost = new HttpPost("http://" + ip + ":" + port+"/"+ server+ "/RegistServlet");
 				List<NameValuePair> nvps = new ArrayList<NameValuePair>();
@@ -205,14 +209,14 @@ public class CommonTools {
 				nvps.add(new BasicNameValuePair(SystemConstants.CACHED_QUEUE_SIZE, cachedQueueSize));
 				// set it to utf8 encoding
 				httpost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
-				RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(7000).setConnectTimeout(3000).build();//设置请求和传输超时时间
+				RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(15000).setConnectTimeout(10000).build();//设置请求和传输超时时间
 				httpost.setConfig(requestConfig);//If the server is down the thread will wait for more than 24 hours
 				HttpResponse response = httpclient.execute(httpost);
-				HttpEntity entity = response.getEntity();
+				entity = response.getEntity();
 				result = IOUtils.toString(entity.getContent());
-				EntityUtils.consume(entity);
 			} finally {
-				httpclient.close();
+				if(entity!= null) EntityUtils.consume(entity);
+				if(httpclient != null) httpclient.close();
 			}
 			logger.debug("Send the heartinfo to server successfully");
 		} catch (Exception e) {

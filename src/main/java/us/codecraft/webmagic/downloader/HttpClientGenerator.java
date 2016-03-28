@@ -33,7 +33,7 @@ public class HttpClientGenerator {
                 .register("https", SSLConnectionSocketFactory.getSocketFactory())
                 .build();
         connectionManager = new PoolingHttpClientConnectionManager(reg);
-        connectionManager.setDefaultMaxPerRoute(100);
+        connectionManager.setDefaultMaxPerRoute(200*2);
     }
 
     public HttpClientGenerator setPoolSize(int poolSize) {

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -152,5 +153,12 @@ public class AppTest
     	
     	pw.flush();
     	pw.close();
+    }
+    
+    public void testMatcherUrl(){
+    	String a = "http://car.autohome.com.cn/config/spec/17712.html#pvareaid=2023154";
+    	System.out.println(a.matches("http://car.autohome.com.cn/config/spec/[0-9]+[.]html.*"));
+    	Date last_time = new Date(0);
+    	System.out.println(last_time.getTime());
     }
 }

@@ -5,15 +5,18 @@ import java.io.PrintWriter;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import us.codecraft.webmagic.Page;
+import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.downloader.Downloader;
 import us.codecraft.webmagic.processor.PageProcessor;
 
+import com.alibaba.fastjson.JSONArray;
 import com.ctbri.spider.cache.CacheHandler;
 import com.ctbri.spider.downloader.OriginalDownloader;
 import com.ctbri.spider.entry.SpiderConfig;
@@ -23,7 +26,7 @@ import com.ctbri.spider.puter.BadPageReloader;
 import com.ctbri.spider.puter.PageBatchWriter;
 import com.ctbri.spider.utils.FileLoadTools;
 
-public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,PageBatchWriter,BadPageReloader {
+public class JDFullPageProcessor implements PageProcessor,SpiderConfig,PageBatchWriter,BadPageReloader {
 	
 	//定义logger，用于记录日志
 	private Logger logger = LoggerFactory.getLogger(getClass());
@@ -39,7 +42,10 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
     		.addHeader("Accept-Encoding", "gzip, deflate, sdch")
     		.addHeader("Accept-Language", "zh-CN,zh;q=0.8")
     		.addHeader("Cache-Control", "no-cache")
-    		.addHeader("Connection", "keep-alive");       
+    		.addHeader("Connection", "keep-alive");
+    //JD相关耦合性配置
+    private String jdPrice = "http://p.3.cn/prices/get?skuid=J_";
+       
     
     // process是定制爬虫逻辑的核心接口，在这里编写抽取逻辑，JD的专属process逻辑
     /**
@@ -59,11 +65,54 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
     public void process(Page page) {
         // 部分二：定义如何抽取页面信息，并保存下来
 		try {
+			
 			page.putField("url", Base64.encodeBase64String(page.getUrl().get().getBytes()));
-			page.putField("content", page.getHtml().get());
+			
+			String pUrl = page.getUrl().get();
+			int ind = pUrl.indexOf(".html");
+			String productId = pUrl.substring(19,ind);
+			Page pricePage = downloader.download(new Request(jdPrice+productId), spider);
+			//获得价格的url对于json，对于此页是事务性的事件，联动性
+			if(pricePage.isNeedCycleRetry()){
+				int retried;
+				for (retried = 0; retried < 5; retried++) {
+					pricePage = downloader.download(new Request(jdPrice+productId), spider);
+					if(!pricePage.isNeedCycleRetry()) break;
+					Thread.sleep(500);//暂停0.5秒
+				}
+				if(retried==5) pricePage = null;
+			}
+			if (pricePage!=null) {
+				String productPrice = "-1";
+				try {
+					JSONArray ja = JSONArray.parseArray(pricePage.getRawText());
+					productPrice = (String) ja.getJSONObject(0).get("p");
+				} catch (Exception e) {
+					logger.error("Not a right formatted json "+e.getMessage());
+				}	
+				Element jdPrice = page.getHtml().getDocument().getElementById("jd-price");
+				if(jdPrice!=null) page.getHtml().getDocument().getElementById("jd-price").text(productPrice);
+				else{
+					jdPrice = page.getHtml().getDocument().getElementById("mini-jd-price");
+					if(jdPrice!=null) page.getHtml().getDocument().getElementById("mini-jd-price").text(productPrice);
+				}
+				
+			}else{
+				Element jdPrice = page.getHtml().getDocument().getElementById("jd-price");
+				if(jdPrice!=null) page.getHtml().getDocument().getElementById("jd-price").text("-1");
+				else{
+					jdPrice = page.getHtml().getDocument().getElementById("mini-jd-price");
+					if(jdPrice!=null) page.getHtml().getDocument().getElementById("mini-jd-price").text("-1");
+				}
+				logger.error("No price info for jd price url, tried 10 times but not get price : " + pUrl);
+			}
+			
+			String result = page.getHtml().get().replaceAll("[\r\n]", "");
+			page.putField("content",result);
+
 		} catch (Exception e) {
-			//page.setSkip(true);
-			logger.info("Exception Happened!"+e.getMessage());
+			if(page==null) logger.error("Retry too many times for a url, the info is recored in the log.");
+			else logger.error("Part or Null info page : "+page.getUrl().get()+" Info: "+e.getMessage());
 		}
     }
 	
@@ -71,7 +120,7 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
 	public void initBatchWritePos(String saveLocation) throws Exception{
 		File file = new File(saveLocation);
 		if(!file.exists()) file.mkdirs();
-		File fileFull = new File(saveLocation+"/linkedHome");
+		File fileFull = new File(saveLocation+"/jdItems");
 		if(!fileFull.exists()) fileFull.mkdir();
 	}
 	
@@ -85,7 +134,7 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
 			String url = (String) e.getItemParams().get("url");
 			String content = (String) e.getItemParams().get("content");
 			
-			PrintWriter printWriter = new PrintWriter(new File(saveLocation+"/linkedHome/"+url),"utf-8");
+			PrintWriter printWriter = new PrintWriter(new File(saveLocation+"/jdItems/"+url),"utf-8");
 			printWriter.print(content);
 			printWriter.flush();
 			printWriter.close();
@@ -111,7 +160,8 @@ public class LinkedHomeToFileProcessor implements PageProcessor,SpiderConfig,Pag
 
 	@Override
 	public String pageReloadUrl(String oneLine) throws Exception{
-		return null;
+		String[] items = oneLine.split(" ");
+		return "http://item.jd.com/"+items[0]+".html";		
 	}
 	//上面三个重写的方法逻辑和内容均不需要改变
 	@Override
